@@ -49,8 +49,8 @@ function initialize() {
       select: 'kml',
       from: villageTable
     },
-    styleId: 2,
     map: map,
+    styleId: 3,
     suppressInfoWindows: true
   });
 
