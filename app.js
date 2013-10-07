@@ -61,6 +61,29 @@ function initialize() {
   // add event listener for country layer
   google.maps.event.addListener(countryLayer, 'click', function(e) {
     panelControl.update(e);
+    countryLayer.setOptions({
+      styles: [{
+        polygonOptions: {
+          fillColor: "#E5E5E5"
+        }
+      },{
+        where: 'status = \'fundraising\'',
+        polygonOptions: {
+          fillColor: "#EC7404"
+        }
+      },{
+        where: 'status = \'active\'',
+        polygonOptions: {
+          fillColor: "#009AE0"
+        }
+      },{
+        where: "iso_a2 LIKE '" + e.row['iso_a2'].value + "'",
+        polygonOptions: {
+          fillOpacity: 0.01,
+          strokeWeight: 1
+        }
+      }]
+    });
     villageLayer.setOptions({
       query: {
         select: 'kml',
