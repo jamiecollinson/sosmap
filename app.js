@@ -1,88 +1,96 @@
-function initialize() {
-  areas = [];
-  
+function initialize() {  
+
+  villageTable = '1_n1A_kTBRcXm_YcIpxV53zs4kj7kedMfioDOtkY';
+  countryTable = '1y7kgNaV_rgIgFeWwcY6jCIKPPRrR-GJvXicf7sw';
+    
   mapOptions = {
     center: new google.maps.LatLng(31.50362930577303, 14.4140625),
     zoom: 2,
+    minZoom: 2,
+    maxZoom: 7,
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     streetViewControl: false
   };
-  countryInitOptions = {
-    fillColor: '008FCC',
-    fillOpacity: 0.5,
-    strokeOpacity: 0
-  };
-  countryHoverOptions = {
-    fillColor: 'EC7404',
-    fillOpacity: 0.5,
-    strokeOpacity: 0
-  };
-  countrySelectOptions = {
-    fillColor: 'EC7404',
-    fillOpacity: 0.8,
-    strokeOpacity: 1
-  };
+  google.maps.visualRefresh = true;
   
   map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
   
-  loadCountries();
-}
+  // initialise info window
+  var infoWindow = new google.maps.InfoWindow();
+  
+  // initialise country layer
+  var countryLayer = new google.maps.FusionTablesLayer({
+    query: {
+      select: 'kml',
+      from: countryTable
+    },
+    styles: [{
+      polygonOptions: {
+        fillColor: "#E5E5E5"
+      }
+    },{
+      where: 'status = \'fundraising\'',
+      polygonOptions: {
+        fillColor: "#EC7404"
+      }
+    },{
+      where: 'status = \'active\'',
+      polygonOptions: {
+        fillColor: "#009AE0"
+      }
+    }],
+    map: map,
+    suppressInfoWindows: true
+  });
+  
+  // initialise village layer
+  var villageLayer = new google.maps.FusionTablesLayer({
+    query: {
+      select: 'kml',
+      from: villageTable
+    },
+    map: map,
+    styleId: 3,
+    suppressInfoWindows: true
+  });
 
-function loadCountries() {
-  $.getJSON('countries.geo.json', function(countries) {
-    $.getJSON('countries.sos.json', function(soscountries) {
-      for (var i=0; i<countries.features.length; i++) {
-        //add ID to properties so it can be used later
-        countries.features[i].properties.id = countries.features[i].id;
-        //add continent to properties
-        for (var j=0; j<soscountries.length; j++) {
-          if (soscountries[j].id == countries.features[i].id) {
-            countries.features[i].properties.continent = soscountries[j].continent;
-          }
-        }
+  // add event listener for country layer
+  google.maps.event.addListener(countryLayer, 'click', function(e) {
+    windowControl(e, infoWindow, map);
+    villageLayer.setOptions({
+      query: {
+        select: 'kml',
+        from: villageTable,
+        where: "iso_a2 LIKE '" + e.row['iso_a2'].value + "'"
       }
-      countries = GeoJSON(countries);
-      for (var i=0; i<countries.length; i++) {
-        if (countries[i] instanceof Array) {
-          for (var j=0; j<countries[i].length; j++) { areas.push( countries[i][j] ) }
-        } else { areas.push( countries[i] ) }
-      }
-      for (var i=0; i<areas.length; i++) { 
-        areas[i].setMap(map);
-        areas[i].setOptions(countryInitOptions);
-      }
-      addAreaListeners();
     });
   });
+  
+  // add event listener for village layer
+  google.maps.event.addListener(villageLayer, 'click', function(e) {
+    windowControl(e, infoWindow, map);
+  });
+  
+  // add event listener for info window
+  google.maps.event.addListener(infoWindow, 'closeclick', function(e) {
+    villageLayer.setOptions({
+      query: {
+        select: 'kml',
+        from: villageTable
+      }
+    });
+  });
+  
 }
 
-function addAreaListeners() {
-  for (var i=0; i<areas.length; i++){
-    google.maps.event.addListener(areas[i], 'mouseover', function() {
-      for (var j=0; j<areas.length; j++){
-        if (areas[j].geojsonProperties.id == this.geojsonProperties.id && map.getZoom()>2) {
-          areas[j].setOptions(countrySelectOptions);
-        } else if (areas[j].geojsonProperties.continent == this.geojsonProperties.continent) {
-          areas[j].setOptions(countryHoverOptions);
-        }
-      }
-    });
-    google.maps.event.addListener(areas[i], 'mouseout', function() {
-      for (var j=0; j<areas.length; j++){
-        areas[j].setOptions(countryInitOptions);
-      }
-    });
-    google.maps.event.addListener(areas[i], 'click', function(event) {
-      if (map.getZoom() <= 2) {
-        if (this.geojsonProperties.continent == 'middle east'){
-          map.setZoom(5);
-        } else {
-          map.setZoom(3);
-        }
-        map.setCenter(event.latLng);
-      }
-    });
-  }
+// Open the info window at the clicked location
+function windowControl(e, infoWindow, map) {
+  infoWindow.setOptions({
+    content: e.infoWindowHtml,
+    position: e.latLng,
+    pixelOffset: e.pixelOffset
+  });
+  infoWindow.open(map);
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
