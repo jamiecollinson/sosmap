@@ -11,15 +11,19 @@ function initialize() {
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     streetViewControl: false
   };
+  
   google.maps.visualRefresh = true;
   
   map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
   
+  // add custom control
+  panelControl = new panelControl(map);
+  
   // initialise info window
-  var infoWindow = new google.maps.InfoWindow();
+  infoWindow = new google.maps.InfoWindow();
   
   // initialise country layer
-  var countryLayer = new google.maps.FusionTablesLayer({
+  countryLayer = new google.maps.FusionTablesLayer({
     query: {
       select: 'kml',
       from: countryTable
@@ -44,7 +48,7 @@ function initialize() {
   });
   
   // initialise village layer
-  var villageLayer = new google.maps.FusionTablesLayer({
+  villageLayer = new google.maps.FusionTablesLayer({
     query: {
       select: 'kml',
       from: villageTable
@@ -56,7 +60,7 @@ function initialize() {
 
   // add event listener for country layer
   google.maps.event.addListener(countryLayer, 'click', function(e) {
-    windowControl(e, infoWindow, map);
+    panelControl.update(e);
     villageLayer.setOptions({
       query: {
         select: 'kml',
@@ -71,22 +75,26 @@ function initialize() {
     windowControl(e, infoWindow, map);
   });
   
-  // add event listener for info window
-  google.maps.event.addListener(infoWindow, 'closeclick', function(e) {
-    villageLayer.setOptions({
-      query: {
-        select: 'kml',
-        from: villageTable
-      }
-    });
-  });
-  
 }
 
-// Open the info window at the clicked location
+// add custom control for country info panel
+function panelControl(map) {
+  div = document.createElement('div');
+  div.style.margin = '5px';
+  div.style.backgroundColor = 'white';
+  div.innerHTML = 'Choose a country';
+  map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(div);  
+  
+  this.update = function(e) {
+    div.innerHTML = e.row['name'].value;
+  }
+}
+
+// open the info window at the clicked location
 function windowControl(e, infoWindow, map) {
+  content = 'This will contain info about the facility';
   infoWindow.setOptions({
-    content: e.infoWindowHtml,
+    content: content,
     position: e.latLng,
     pixelOffset: e.pixelOffset
   });
