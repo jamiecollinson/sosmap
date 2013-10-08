@@ -30,12 +30,8 @@ function initialize() {
     },
     styles: [{
       polygonOptions: {
-        fillColor: "#E5E5E5"
-      }
-    },{
-      where: 'status = \'fundraising\'',
-      polygonOptions: {
-        fillColor: "#EC7404"
+        fillColor: "#999999",
+        fillOpacity: 0.5
       }
     },{
       where: 'status = \'active\'',
@@ -64,12 +60,8 @@ function initialize() {
     countryLayer.setOptions({
       styles: [{
         polygonOptions: {
-          fillColor: "#E5E5E5"
-        }
-      },{
-        where: 'status = \'fundraising\'',
-        polygonOptions: {
-          fillColor: "#EC7404"
+          fillColor: "#999999",
+          fillOpacity: 0.8
         }
       },{
         where: 'status = \'active\'',
@@ -79,8 +71,7 @@ function initialize() {
       },{
         where: "iso_a2 LIKE '" + e.row['iso_a2'].value + "'",
         polygonOptions: {
-          fillOpacity: 0.01,
-          strokeWeight: 1
+          fillOpacity: 0.01
         }
       }]
     });
@@ -105,11 +96,12 @@ function panelControl(map) {
   div = document.createElement('div');
   div.style.margin = '5px';
   div.style.backgroundColor = 'white';
-  div.innerHTML = 'Choose a country';
+  div.innerHTML = '<h2>Choose a country</h2>';
   map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(div);  
   
   this.update = function(e) {
-    div.innerHTML = e.row['name'].value;
+    div.innerHTML = '<h2>' + e.row['name'].value + '</h2>';
+    div.innerHTML += '<p>Information goes here</p>';
   }
 }
 
