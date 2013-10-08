@@ -16,7 +16,7 @@ function initialize() {
   
   map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
   
-  // add custom control
+  // add panel control
   panelControl = new panelControl(map);
   
   // initialise info window
@@ -56,32 +56,7 @@ function initialize() {
 
   // add event listener for country layer
   google.maps.event.addListener(countryLayer, 'click', function(e) {
-    panelControl.update(e);
-    countryLayer.setOptions({
-      styles: [{
-        polygonOptions: {
-          fillColor: "#999999",
-          fillOpacity: 0.8
-        }
-      },{
-        where: 'status = \'active\'',
-        polygonOptions: {
-          fillColor: "#009AE0"
-        }
-      },{
-        where: "iso_a2 LIKE '" + e.row['iso_a2'].value + "'",
-        polygonOptions: {
-          fillOpacity: 0.01
-        }
-      }]
-    });
-    villageLayer.setOptions({
-      query: {
-        select: 'kml',
-        from: villageTable,
-        where: "iso_a2 LIKE '" + e.row['iso_a2'].value + "'"
-      }
-    });
+    countryControl(countryLayer, villageLayer, e);
   });
   
   // add event listener for village layer
@@ -89,6 +64,36 @@ function initialize() {
     windowControl(e, infoWindow, map);
   });
   
+}
+
+// controller for clicks on country layer
+function countryControl(countryLayer, villageLayer, e) {
+  panelControl.update(e);
+  countryLayer.setOptions({
+    styles: [{
+      polygonOptions: {
+        fillColor: "#999999",
+        fillOpacity: 0.8
+      }
+    },{
+      where: 'status = \'active\'',
+      polygonOptions: {
+        fillColor: "#009AE0"
+      }
+    },{
+      where: "iso_a2 LIKE '" + e.row['iso_a2'].value + "'",
+      polygonOptions: {
+      fillOpacity: 0.01
+    }
+             }]
+  });
+  villageLayer.setOptions({
+    query: {
+      select: 'kml',
+      from: villageTable,
+      where: "iso_a2 LIKE '" + e.row['iso_a2'].value + "'"
+    }
+  });  
 }
 
 // add custom control for country info panel
