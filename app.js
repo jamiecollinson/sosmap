@@ -62,7 +62,12 @@ function initialize() {
   
 }
 
-// controller for clicks on country layer
+// controller for villages layer
+function villageControl() {
+  
+}
+
+// controller for country layer
 function countryControl(countryLayer, villageLayer, e) {
   panelControl.update(e);
   countryLayer.setOptions({
