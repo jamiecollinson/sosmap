@@ -45,10 +45,6 @@ function initialize() {
   
   // initialise village layer
   villageLayer = new google.maps.FusionTablesLayer({
-    query: {
-      select: 'kml',
-      from: villageTable
-    },
     map: map,
     styleId: 3,
     suppressInfoWindows: true
