@@ -44,20 +44,10 @@ function initialize() {
   });
   
   // initialise village layer
-  villageLayer = new google.maps.FusionTablesLayer({
-    map: map,
-    styleId: 3,
-    suppressInfoWindows: true
-  });
 
   // add event listener for country layer
   google.maps.event.addListener(countryLayer, 'click', function(e) {
-    countryControl(countryLayer, villageLayer, e);
-  });
-  
-  // add event listener for village layer
-  google.maps.event.addListener(villageLayer, 'click', function(e) {
-    windowControl(e, infoWindow, map);
+    countryControl(countryLayer, e);
   });
   
 }
@@ -68,7 +58,7 @@ function villageControl() {
 }
 
 // controller for country layer
-function countryControl(countryLayer, villageLayer, e) {
+function countryControl(countryLayer, e) {
   panelControl.update(e);
   countryLayer.setOptions({
     styles: [{
@@ -84,17 +74,10 @@ function countryControl(countryLayer, villageLayer, e) {
     },{
       where: "iso_a2 LIKE '" + e.row['iso_a2'].value + "'",
       polygonOptions: {
-      fillOpacity: 0.01
-    }
-             }]
+        fillOpacity: 0.01
+      }
+    }]
   });
-  villageLayer.setOptions({
-    query: {
-      select: 'kml',
-      from: villageTable,
-      where: "iso_a2 LIKE '" + e.row['iso_a2'].value + "'"
-    }
-  });  
 }
 
 // add custom control for country info panel
