@@ -31,7 +31,7 @@ function initialize() {
     styles: [{
       polygonOptions: {
         fillColor: "#999999",
-        fillOpacity: 0.5
+        fillOpacity: 0.9
       }
     },{
       where: 'status = \'active\'',
