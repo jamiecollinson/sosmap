@@ -83,6 +83,7 @@ function villageControl(villageTable, fusionTablesAPIKey) {
     var villages = this.villages;
     for (var i=0; i<villages.length; i++) {
       if (villages[i].iso_a2 === iso_a2) {
+        villages[i].setAnimation(google.maps.Animation.DROP);
         villages[i].setMap(map);
       } else {
         villages[i].setMap();
@@ -99,8 +100,7 @@ function villageControl(villageTable, fusionTablesAPIKey) {
         position: latLng,
         title: rows[i][0],
         iso_a2: rows[i][3],
-        icon: icon,
-        animation: google.maps.Animation.DROP
+        icon: icon
       });
       this.villages.push(marker);
     }
