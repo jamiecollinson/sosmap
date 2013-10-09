@@ -15,48 +15,29 @@ function initialize() {
   
   google.maps.visualRefresh = true;
   
+  // initialise map
   var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+  // add event listener for map
+  google.maps.event.addListener(map, 'zoom_changed', function(e) {
+    villages.updateIconSize();
+  });
   
-  // add panel control
-  panelControl = new panelControl(map);
+  // initialise info panel
+  var infoPanel = new panelControl(map);
   
   // initialise info window
-  infoWindow = new google.maps.InfoWindow();
-  
-  // initialise country layer
-  countryLayer = new google.maps.FusionTablesLayer({
-    query: {
-      select: 'kml',
-      from: countryTable
-    },
-    styles: [{
-      where: 'status NOT EQUAL TO \'active\'',
-      polygonOptions: {
-        fillColor: "#999999",
-        fillOpacity: 0.9
-      }
-    },{
-      where: 'status = \'active\'',
-      polygonOptions: {
-        fillColor: "#009AE0"
-      }
-    }],
-    map: map,
-    suppressInfoWindows: true
-  });
+  var infoWindow = new google.maps.InfoWindow();
   
   // initialise village layer & add to window so villages.callback is available
   var villages = new villageControl(map, villageTable, googleBrowserKey);
   window.villages = villages;
   
+  // initialise country layer
+  var countries = new countryControl(map, countryTable);
   // add event listener for country layer
-  google.maps.event.addListener(countryLayer, 'click', function(e) {
-    countryControl(countryLayer, e, villages, map);
-  });
-  
-  // add event listener for map
-  google.maps.event.addListener(map, 'zoom_changed', function(e) {
-    villages.updateIconSize();
+  google.maps.event.addListener(countries.countries, 'click', function(e) {
+    console.log('click');
+    countries.onClick(e, infoPanel, villages);
   });
   
 }
@@ -131,29 +112,53 @@ function villageControl(map, villageTable, googleBrowserKey) {
 }
 
 // controller for country layer
-function countryControl(countryLayer, e, villages, map) {
-  var iso_a2 = e.row['iso_a2'].value;
-  panelControl.update(e);
-  villages.addToMap(map, iso_a2);
-  countryLayer.setOptions({
+function countryControl(map, countryTable) {  
+  this.countries = new google.maps.FusionTablesLayer({
+    query: {
+      select: 'kml',
+      from: countryTable
+    },
     styles: [{
       where: 'status NOT EQUAL TO \'active\'',
       polygonOptions: {
         fillColor: "#999999",
-        fillOpacity: 0.8
+        fillOpacity: 0.6
       }
     },{
       where: 'status = \'active\'',
       polygonOptions: {
         fillColor: "#009AE0"
       }
-    },{
-      where: "iso_a2 LIKE '" + iso_a2 + "'",
-      polygonOptions: {
+    }],
+    map: map,
+    suppressInfoWindows: true
+  });
+  
+  this.onClick = function(e, infoPanel, villages) {
+    var iso_a2 = e.row['iso_a2'].value;
+    infoPanel.update(e);
+    villages.addToMap(map, iso_a2);
+    this.countries.setOptions({
+      styles: [{
+        where: 'status NOT EQUAL TO \'active\'',
+        polygonOptions: {
+          fillColor: "#999999",
+          fillOpacity: 0.8
+        }
+      },{
+        where: 'status = \'active\'',
+        polygonOptions: {
+          fillColor: "#009AE0"
+        }
+      },{
+        where: "iso_a2 LIKE '" + iso_a2 + "'",
+        polygonOptions: {
         fillOpacity: 0.01
       }
-    }]
-  });
+      }]
+    });
+  }
+
 }
 
 // add custom control for country info panel
