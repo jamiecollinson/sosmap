@@ -1,10 +1,10 @@
 function initialize() {  
 
-  villageTable = '1_n1A_kTBRcXm_YcIpxV53zs4kj7kedMfioDOtkY';
-  countryTable = '1y7kgNaV_rgIgFeWwcY6jCIKPPRrR-GJvXicf7sw';
-  googleBrowserKey = 'AIzaSyD2NNOm9P6iW0Kw8NHb1SwcMwD4YB1fUiw';
+  var villageTable = '1_n1A_kTBRcXm_YcIpxV53zs4kj7kedMfioDOtkY';
+  var countryTable = '1y7kgNaV_rgIgFeWwcY6jCIKPPRrR-GJvXicf7sw';
+  var googleBrowserKey = 'AIzaSyD2NNOm9P6iW0Kw8NHb1SwcMwD4YB1fUiw';
     
-  mapOptions = {
+  var mapOptions = {
     center: new google.maps.LatLng(31.50362930577303, 14.4140625),
     zoom: 2,
     minZoom: 2,
@@ -30,6 +30,7 @@ function initialize() {
       from: countryTable
     },
     styles: [{
+      where: 'status NOT EQUAL TO \'active\'',
       polygonOptions: {
         fillColor: "#999999",
         fillOpacity: 0.9
@@ -45,7 +46,7 @@ function initialize() {
   });
   
   // initialise village layer & add to window so villages.callback is available
-  var villages = new villageControl(villageTable, googleBrowserKey);
+  var villages = new villageControl(map, villageTable, googleBrowserKey);
   window.villages = villages;
   
   // add event listener for country layer
@@ -53,10 +54,15 @@ function initialize() {
     countryControl(countryLayer, e, villages, map);
   });
   
+  // add event listener for map
+  google.maps.event.addListener(map, 'zoom_changed', function(e) {
+    villages.updateIconSize();
+  });
+  
 }
 
 // controller for villages layer
-function villageControl(villageTable, fusionTablesAPIKey) {
+function villageControl(map, villageTable, fusionTablesAPIKey) {
   // jsonp query to get village data from fusion tables
   var script = document.createElement('script');
   var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
@@ -70,6 +76,9 @@ function villageControl(villageTable, fusionTablesAPIKey) {
   script.src = url.join('');
   var body = document.getElementsByTagName('body')[0];
   body.appendChild(script);
+  
+  var smallIcon = 'img/bg-marker-3.png';
+  var largeIcon = 'img/bg-marker-2.png';
   
   this.villages = [];
   
@@ -91,28 +100,44 @@ function villageControl(villageTable, fusionTablesAPIKey) {
     }
   }
   
+  this.updateIconSize = function() {
+    var zoom = map.getZoom();
+    var villages = this.villages;
+    if (zoom < 5) {
+      for (var i=0; i<villages.length; i++) {
+        villages[i].setIcon(smallIcon);
+      }
+    } else {
+      for (var i=0; i<villages.length; i++) {
+        villages[i].setIcon(largeIcon);
+      }
+    }
+  }
+  
   this.callBack = function(data) {
     var rows = data['rows'];
     for (var i=0; i<rows.length; i++) {
-      var icon = 'img/bg-marker-2.png';
       var latLng = new google.maps.LatLng(rows[i][1],rows[i][2]);
       var marker = new google.maps.Marker({
         position: latLng,
         title: rows[i][0],
         iso_a2: rows[i][3],
-        icon: icon
+        icon: smallIcon
       });
       this.villages.push(marker);
     }
   }
+  
 }
 
 // controller for country layer
 function countryControl(countryLayer, e, villages, map) {
   var iso_a2 = e.row['iso_a2'].value;
   panelControl.update(e);
+  villages.addToMap(map, iso_a2);
   countryLayer.setOptions({
     styles: [{
+      where: 'status NOT EQUAL TO \'active\'',
       polygonOptions: {
         fillColor: "#999999",
         fillOpacity: 0.8
@@ -129,7 +154,6 @@ function countryControl(countryLayer, e, villages, map) {
       }
     }]
   });
-  villages.addToMap(map, iso_a2);
 }
 
 // add custom control for country info panel
@@ -137,8 +161,8 @@ function panelControl(map) {
   var div = document.createElement('div');
   div.style.margin = '5px';
   div.style.backgroundColor = 'white';
-  div.innerHTML = '<h2>Choose a country</h2>';
-  map.controls[google.maps.ControlPosition.RIGHT_CENTER].push(div);  
+  div.innerHTML = '<h1>Click on a country to see where we work</h1>';
+  map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);  
   
   this.update = function(e) {
     div.innerHTML = '<h2>' + e.row['name'].value + '</h2>';
