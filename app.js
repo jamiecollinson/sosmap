@@ -99,7 +99,8 @@ function villageControl(villageTable, fusionTablesAPIKey) {
         position: latLng,
         title: rows[i][0],
         iso_a2: rows[i][3],
-        icon: icon
+        icon: icon,
+        animation: google.maps.Animation.DROP
       });
       this.villages.push(marker);
     }
