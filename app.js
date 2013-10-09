@@ -62,7 +62,7 @@ function initialize() {
 }
 
 // controller for villages layer
-function villageControl(map, villageTable, fusionTablesAPIKey) {
+function villageControl(map, villageTable, googleBrowserKey) {
   // jsonp query to get village data from fusion tables
   var script = document.createElement('script');
   var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
