@@ -33,12 +33,7 @@ function initialize() {
   window.villages = villages;
   
   // initialise country layer
-  var countries = new countryControl(map, countryTable);
-  // add event listener for country layer
-  google.maps.event.addListener(countries.countries, 'click', function(e) {
-    console.log('click');
-    countries.onClick(e, infoPanel, villages);
-  });
+  var countries = new countryControl(map, countryTable, infoPanel, villages);
   
 }
 
@@ -112,7 +107,7 @@ function villageControl(map, villageTable, googleBrowserKey) {
 }
 
 // controller for country layer
-function countryControl(map, countryTable) {  
+function countryControl(map, countryTable, infoPanel, villages) {  
   this.countries = new google.maps.FusionTablesLayer({
     query: {
       select: 'kml',
@@ -134,11 +129,12 @@ function countryControl(map, countryTable) {
     suppressInfoWindows: true
   });
   
-  this.onClick = function(e, infoPanel, villages) {
+  // add event listener for country layer
+  google.maps.event.addListener(this.countries, 'click', function(e) {
     var iso_a2 = e.row['iso_a2'].value;
     infoPanel.update(e);
     villages.addToMap(map, iso_a2);
-    this.countries.setOptions({
+    this.setOptions({
       styles: [{
         where: 'status NOT EQUAL TO \'active\'',
         polygonOptions: {
@@ -157,7 +153,7 @@ function countryControl(map, countryTable) {
       }
       }]
     });
-  }
+  });
 
 }
 
