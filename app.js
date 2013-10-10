@@ -105,7 +105,7 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
       google.maps.event.addListener(marker, 'click', function(e) {
         var content = '<h2>' + this.title + '</h2>'
           + '<p>This will contain info about the programmes in ' + this.title + '</p>'
-          + '<p><a href="#">This will link to the country page</a></p>';
+          + '<p><a href="#">This will link to the village page</a></p>';
         infoWindow.setOptions({
           content: content,
           position: e.latLng,
