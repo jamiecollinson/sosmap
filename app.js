@@ -29,16 +29,17 @@ function initialize() {
   var infoWindow = new google.maps.InfoWindow();
   
   // initialise village layer & add to window so villages.callback is available
-  var villages = new villageControl(map, villageTable, googleBrowserKey);
+  var villages = new villageControl(map, villageTable, googleBrowserKey, infoWindow);
   window.villages = villages;
   
   // initialise country layer
-  var countries = new countryControl(map, countryTable, infoPanel, villages);
+  var countries = new countryControl(map, countryTable, infoPanel, villages, infoWindow);
   
 }
 
 // controller for villages layer
-function villageControl(map, villageTable, googleBrowserKey) {
+function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
+  
   // jsonp query to get village data from fusion tables
   var script = document.createElement('script');
   var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
@@ -100,6 +101,17 @@ function villageControl(map, villageTable, googleBrowserKey) {
         iso_a2: rows[i][3],
         icon: smallIcon
       });
+      // add click listener
+      google.maps.event.addListener(marker, 'click', function(e) {
+        var content = '<h2>' + this.title + '</h2>'
+          + '<p>This will contain info about the programmes in ' + this.title + '</p>';
+        infoWindow.setOptions({
+          content: content,
+          position: e.latLng,
+          pixelOffset: e.pixelOffset
+        });
+        infoWindow.open(map);
+      });
       this.villages.push(marker);
     }
   }
@@ -107,7 +119,7 @@ function villageControl(map, villageTable, googleBrowserKey) {
 }
 
 // controller for country layer
-function countryControl(map, countryTable, infoPanel, villages) {  
+function countryControl(map, countryTable, infoPanel, villages, infoWindow) {  
   this.countries = new google.maps.FusionTablesLayer({
     query: {
       select: 'kml',
@@ -133,6 +145,7 @@ function countryControl(map, countryTable, infoPanel, villages) {
   google.maps.event.addListener(this.countries, 'click', function(e) {
     var iso_a2 = e.row['iso_a2'].value;
     infoPanel.update(e);
+    infoWindow.close();
     villages.addToMap(map, iso_a2);
     this.setOptions({
       styles: [{
@@ -169,17 +182,6 @@ function panelControl(map) {
     div.innerHTML = '<h2>' + e.row['name'].value + '</h2>';
     div.innerHTML += '<p>Information goes here</p>';
   }
-}
-
-// open the info window at the clicked location
-function windowControl(e, infoWindow, map) {
-  var content = 'This will contain info about the facility';
-  infoWindow.setOptions({
-    content: content,
-    position: e.latLng,
-    pixelOffset: e.pixelOffset
-  });
-  infoWindow.open(map);
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
