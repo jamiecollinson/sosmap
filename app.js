@@ -104,7 +104,8 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
       // add click listener
       google.maps.event.addListener(marker, 'click', function(e) {
         var content = '<h2>' + this.title + '</h2>'
-          + '<p>This will contain info about the programmes in ' + this.title + '</p>';
+          + '<p>This will contain info about the programmes in ' + this.title + '</p>'
+          + '<p><a href="#">This will link to the country page</a></p>';
         infoWindow.setOptions({
           content: content,
           position: e.latLng,
@@ -180,7 +181,10 @@ function panelControl(map) {
   
   this.update = function(e) {
     div.innerHTML = '<h2>' + e.row['name'].value + '</h2>';
-    div.innerHTML += '<p>Information goes here</p>';
+    div.innerHTML += '<p>Information on ' + e.row['name'].value
+      + ' (did you know it has a population of ' + e.row['pop_est'].value 
+      + '?) will go here</p>'
+      + '<p><a href="#">This will link to the country page</a></p>';
   }
 }
 
