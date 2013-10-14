@@ -54,8 +54,8 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
   var body = document.getElementsByTagName('body')[0];
   body.appendChild(script);
   
-  var smallIcon = 'img/bg-marker-3.png';
-  var largeIcon = 'img/bg-marker-2.png';
+  var smallIcon = 'img/sos-marker-small.png';
+  var largeIcon = 'img/sos-marker-large.png';
   
   this.villages = [];
   
