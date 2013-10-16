@@ -100,31 +100,31 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
         position: latLng,
         title: rows[i][0],
         iso_a2: rows[i][3],
-        location_estimate: rows[i][4],
-        cv: rows[i][5],
-        yf1: rows[i][6],
-        yf2: rows[i][7],
-        kg: rows[i][8],
-        sl1: rows[i][9],
-        sl2: rows[i][10],
-        tc1: rows[i][11],
-        tc2: rows[i][12],
+        location_estimate: rows[i][4] == 'TRUE',
+        cv: parseInt(rows[i][5]),
+        yf1: parseInt(rows[i][6]),
+        yf2: parseInt(rows[i][7]),
+        kg: parseInt(rows[i][8]),
+        sl1: parseInt(rows[i][9]),
+        sl2: parseInt(rows[i][10]),
+        tc1: parseInt(rows[i][11]),
+        tc2: parseInt(rows[i][12]),
         sc1: parseInt(rows[i][13]) + parseInt(rows[i][14]),
-        sc1_child: rows[i][13],
-        sc1_adult: rows[i][14],
-        sc2: rows[i][15],
-        mc: rows[i][16],
-        mc_days: rows[i][17],
-        ep: rows[i][18],
-        ep_days: rows[i][19],
-        cv_families: rows[i][20],
-        sc_families: rows[i][21],
+        sc1_child: parseInt(rows[i][13]),
+        sc1_adult: parseInt(rows[i][14]),
+        sc2: parseInt(rows[i][15]),
+        mc: parseInt(rows[i][16]),
+        mc_days: parseInt(rows[i][17]),
+        ep: parseInt(rows[i][18]),
+        ep_days: parseInt(rows[i][19]),
+        cv_families: parseInt(rows[i][20]),
+        sc_families: parseInt(rows[i][21]),
         icon: smallIcon
       });
       // add click listener
       google.maps.event.addListener(marker, 'click', function(e) {
         var content = '<h2>' + this.title + '</h2>';
-        if (this.location_estimate == 'TRUE') { content += '<p><em>This location is an estimate</em></p>' }
+        if (this.location_estimate) { content += '<p><em>Location of this marker is approximate</em></p>' }
         if (this.cv > 0) { content += '<p>Sponsored children: ' + this.cv + ' (' + this.cv_families + ' SOS families)</p>' }
         if (this.sc1 > 0) { 
           content += '<p>People helped by family strengthening programmes: ' + this.sc1 
@@ -132,13 +132,13 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
         }
         if (this.sc2 > 0) { content += '<p>People helped by social programmes: ' + this.sc2 + '</p>' }
         if (this.mc > 0) { content += '<p>Medical treatments given: ' + this.mc + '</p>' }
-        if (this.ep > 0) { content += '<p>Emergency programme services delivered: ' + this.kg + '</p>' }
+        if (this.ep > 0) { content += '<p>Emergency programme services delivered: ' + this.ep + '</p>' }
         if (this.kg > 0) { content += '<p>Children in nursery school: ' + this.kg + '</p>' }
         if (this.sl1 > 0) { content += '<p>Children in primary school: ' + this.sl1 + '</p>' }
         if (this.sl2 > 0) { content += '<p>Children in secondary school: ' + this.sl2 + '</p>' }
         if (this.tc2 > 0) { content += '<p>Students in vocational training centres: ' + this.tc2 + '</p>' }
         content += '<p><a href="#">This will link to the village page</a></p>';
-        
+
         infoWindow.setOptions({
           content: content,
           position: e.latLng,
@@ -183,21 +183,21 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
     villages.addToMap(map, iso_a2);
     this.setOptions({
       styles: [{
-        where: 'programmes = 0',
+        where: "programmes = 0",
         polygonOptions: {
           fillColor: "#999999",
           fillOpacity: 0.8
         }
       },{
-        where: 'programmes > 0',
+        where: "programmes > 0",
         polygonOptions: {
           fillColor: "#009AE0"
         }
       },{
-        where: "iso_a2 LIKE '" + iso_a2 + "'",
+        where: "iso_a2 CONTAINS '" + iso_a2 + "'",
         polygonOptions: {
-        fillOpacity: 0.01
-      }
+          fillOpacity: 0.01
+        }
       }]
     });
   });
