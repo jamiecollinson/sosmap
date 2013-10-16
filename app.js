@@ -39,7 +39,6 @@ function initialize() {
 
 // controller for villages layer
 function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
-  
   // jsonp query to get village data from fusion tables
   var script = document.createElement('script');
   var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
@@ -178,7 +177,7 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
   // add event listener for country layer
   google.maps.event.addListener(this.countries, 'click', function(e) {
     var iso_a2 = e.row['iso_a2'].value;
-    infoPanel.update(e);
+    infoPanel.update(e, villages, iso_a2);
     infoWindow.close();
     villages.addToMap(map, iso_a2);
     this.setOptions({
@@ -208,16 +207,73 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
 function panelControl(map) {
   var div = document.createElement('div');
   div.style.margin = '5px';
+  div.style.padding = '5px';
   div.style.backgroundColor = 'white';
   div.innerHTML = '<h1>Click on a country to see where we work</h1>';
   map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);  
   
-  this.update = function(e) {
-    div.innerHTML = '<h2>' + e.row['name'].value + '</h2>';
-    div.innerHTML += '<p>Information on ' + e.row['name'].value
-      + ' (did you know it has a population of ' + e.row['pop_est'].value 
-      + '?) will go here</p>'
-      + '<p><a href="#">This will link to the country page</a></p>';
+  this.update = function(e, villages, iso_a2) {
+    var villages = villages.villages;
+    var countryTotals = {
+      cv: 0,
+      yf1: 0,
+      yf2: 0,
+      kg: 0,
+      sl1: 0,
+      sl2: 0,
+      tc1: 0,
+      tc2: 0,
+      sc1: 0,
+      sc1_child: 0,
+      sc1_adult: 0,
+      sc2: 0,
+      mc: 0,
+      mc_days: 0,
+      ep: 0,
+      ep_days: 0,
+      cv_families: 0,
+      sc_families: 0,
+    };
+    for (var i=0; i<villages.length; i++) {
+      if (villages[i].iso_a2 === iso_a2) {
+        countryTotals.cv += villages[i].cv;
+        countryTotals.yf1 += villages[i].yf1;
+        countryTotals.yf2 += villages[i].yf2;
+        countryTotals.kg += villages[i].kg;
+        countryTotals.sl1 += villages[i].sl1;
+        countryTotals.sl2 += villages[i].sl2;
+        countryTotals.tc1 += villages[i].tc1;
+        countryTotals.tc2 += villages[i].tc2;
+        countryTotals.sc1 += villages[i].sc1;
+        countryTotals.sc1_child += villages[i].sc1_child;
+        countryTotals.sc1_adult += villages[i].sc1_adult;
+        countryTotals.sc2 += villages[i].sc2;
+        countryTotals.mc += villages[i].mc;
+        countryTotals.mc_days += villages[i].mc_days;
+        countryTotals.ep += villages[i].ep;
+        countryTotals.ep_days += villages[i].ep_days;
+        countryTotals.cv_families += villages[i].cv_families;
+        countryTotals.sc_families += villages[i].sc_families;
+      }
+    }
+    var content = '<h2>' + e.row['name'].value + '</h2>';
+    content += '<p><em>Click on a marker to see details of each programme</em></p>';
+    if (countryTotals.cv > 0) { 
+      content += '<p>Sponsored children: ' + countryTotals.cv + ' (' + countryTotals.cv_families + ' SOS families)</p>' 
+    }
+    if (countryTotals.sc1 > 0) { 
+      content += '<p>People helped by family strengthening programmes: ' + countryTotals.sc1 + '</p>';
+    }
+    if (countryTotals.sc2 > 0) { content += '<p>People helped by social programmes: ' + countryTotals.sc2 + '</p>' }
+    if (countryTotals.mc > 0) { content += '<p>Medical treatments given: ' + countryTotals.mc + '</p>' }
+    if (countryTotals.ep > 0) { content += '<p>Emergency programme services delivered: ' + countryTotals.ep + '</p>' }
+    if (countryTotals.kg > 0) { content += '<p>Children in nursery school: ' + countryTotals.kg + '</p>' }
+    if (countryTotals.sl1 > 0) { content += '<p>Children in primary school: ' + countryTotals.sl1 + '</p>' }
+    if (countryTotals.sl2 > 0) { content += '<p>Children in secondary school: ' + countryTotals.sl2 + '</p>' }
+    if (countryTotals.tc2 > 0) { content += '<p>Students in vocational training centres: ' + countryTotals.tc2 + '</p>' }
+    content += '<p><a href="#">This will link to the country page</a></p>';
+    
+    div.innerHTML = content;
   }
 }
 
