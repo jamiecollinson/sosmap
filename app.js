@@ -44,9 +44,9 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
   var script = document.createElement('script');
   var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
   url.push('sql=');
-  var query = 'SELECT programme, lat, lng, iso_a2,'
-    + 'CV, YF1, YF2, KG '
-    + 'FROM ' + villageTable;
+  var query = 'SELECT programme, lat, lng, iso_a2, location_estimate,'
+    + 'CV,YF1,YF2,KG,SL1,SL2,TC1,TC2,SC1_child,SC1_adult,SC2,MC,MC_days,EP,EP_days,CV_families,SC_families'
+    + ' FROM ' + villageTable;
   var encodedQuery = encodeURIComponent(query);
   url.push(encodedQuery);
   url.push('&callback=villages.callBack');
@@ -100,18 +100,44 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
         position: latLng,
         title: rows[i][0],
         iso_a2: rows[i][3],
-        cv: rows[i][4],
-        yf1: rows[i][5],
-        yf2: rows[i][6],
-        kg: rows[i][7],
+        location_estimate: rows[i][4],
+        cv: rows[i][5],
+        yf1: rows[i][6],
+        yf2: rows[i][7],
+        kg: rows[i][8],
+        sl1: rows[i][9],
+        sl2: rows[i][10],
+        tc1: rows[i][11],
+        tc2: rows[i][12],
+        sc1: parseInt(rows[i][13]) + parseInt(rows[i][14]),
+        sc1_child: rows[i][13],
+        sc1_adult: rows[i][14],
+        sc2: rows[i][15],
+        mc: rows[i][16],
+        mc_days: rows[i][17],
+        ep: rows[i][18],
+        ep_days: rows[i][19],
+        cv_families: rows[i][20],
+        sc_families: rows[i][21],
         icon: smallIcon
       });
       // add click listener
       google.maps.event.addListener(marker, 'click', function(e) {
-        var content = '<h2>' + this.title + '</h2>'
-          + '<p>Our programme in ' + this.title + ' supports ' + this.cv + ' sponsored children and ' 
-          + this.kg + ' children use the nursery school.</p>'
-          + '<p><a href="#">This will link to the village page</a></p>';
+        var content = '<h2>' + this.title + '</h2>';
+        if (this.location_estimate == 'TRUE') { content += '<p><em>This location is an estimate</em></p>' }
+        if (this.cv > 0) { content += '<p>Sponsored children: ' + this.cv + ' (' + this.cv_families + ' SOS families)</p>' }
+        if (this.sc1 > 0) { 
+          content += '<p>People helped by community programmes: ' + this.sc1 
+            + ' (' + this.sc1_child + ' children and ' + this.sc1_adult + ' adults in ' + this.sc_families + ' families)</p>';
+        }
+        if (this.mc > 0) { content += '<p>Medical treatments given: ' + this.mc + '</p>' }
+        if (this.ep > 0) { content += '<p>Emergency programme services delivered: ' + this.kg + '</p>' }
+        if (this.kg > 0) { content += '<p>Children in nursery school: ' + this.kg + '</p>' }
+        if (this.sl1 > 0) { content += '<p>Children in primary school: ' + this.sl1 + '</p>' }
+        if (this.sl2 > 0) { content += '<p>Children in secondary school: ' + this.sl2 + '</p>' }
+        if (this.tc2 > 0) { content += '<p>Students in vocational training centres: ' + this.tc2 + '</p>' }
+        content += '<p><a href="#">This will link to the village page</a></p>';
+        
         infoWindow.setOptions({
           content: content,
           position: e.latLng,
