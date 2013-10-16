@@ -1,7 +1,7 @@
 function initialize() {  
 
-  var villageTable = '1_n1A_kTBRcXm_YcIpxV53zs4kj7kedMfioDOtkY';
-  var countryTable = '1y7kgNaV_rgIgFeWwcY6jCIKPPRrR-GJvXicf7sw';
+  var villageTable = '1_mE4L4_OPopMUvn8ynWNYGqsa0wyYzY0Gu8cvG8';
+  var countryTable = '1w-fDJdEdo6ds_3c4J3n9yMNql7XY3TjX_QiGz74';
   var googleBrowserKey = 'AIzaSyD2NNOm9P6iW0Kw8NHb1SwcMwD4YB1fUiw';
     
   var mapOptions = {
@@ -44,8 +44,9 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
   var script = document.createElement('script');
   var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
   url.push('sql=');
-  var query = 'SELECT name, lat, lng, iso_a2 FROM ' +
-    villageTable;
+  var query = 'SELECT programme, lat, lng, iso_a2,'
+    + 'CV, YF1, YF2, KG '
+    + 'FROM ' + villageTable;
   var encodedQuery = encodeURIComponent(query);
   url.push(encodedQuery);
   url.push('&callback=villages.callBack');
@@ -99,12 +100,17 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
         position: latLng,
         title: rows[i][0],
         iso_a2: rows[i][3],
+        cv: rows[i][4],
+        yf1: rows[i][5],
+        yf2: rows[i][6],
+        kg: rows[i][7],
         icon: smallIcon
       });
       // add click listener
       google.maps.event.addListener(marker, 'click', function(e) {
         var content = '<h2>' + this.title + '</h2>'
-          + '<p>This will contain info about the programmes in ' + this.title + '</p>'
+          + '<p>Our programme in ' + this.title + ' supports ' + this.cv + ' sponsored children and ' 
+          + this.kg + ' children use the nursery school.</p>'
           + '<p><a href="#">This will link to the village page</a></p>';
         infoWindow.setOptions({
           content: content,
@@ -127,13 +133,13 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
       from: countryTable
     },
     styles: [{
-      where: 'status NOT EQUAL TO \'active\'',
+      where: 'programmes = 0',
       polygonOptions: {
         fillColor: "#999999",
         fillOpacity: 0.6
       }
     },{
-      where: 'status = \'active\'',
+      where: 'programmes > 0',
       polygonOptions: {
         fillColor: "#009AE0"
       }
@@ -150,13 +156,13 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
     villages.addToMap(map, iso_a2);
     this.setOptions({
       styles: [{
-        where: 'status NOT EQUAL TO \'active\'',
+        where: 'programmes = 0',
         polygonOptions: {
           fillColor: "#999999",
           fillOpacity: 0.8
         }
       },{
-        where: 'status = \'active\'',
+        where: 'programmes > 0',
         polygonOptions: {
           fillColor: "#009AE0"
         }
