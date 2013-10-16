@@ -127,9 +127,10 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
         if (this.location_estimate == 'TRUE') { content += '<p><em>This location is an estimate</em></p>' }
         if (this.cv > 0) { content += '<p>Sponsored children: ' + this.cv + ' (' + this.cv_families + ' SOS families)</p>' }
         if (this.sc1 > 0) { 
-          content += '<p>People helped by community programmes: ' + this.sc1 
+          content += '<p>People helped by family strengthening programmes: ' + this.sc1 
             + ' (' + this.sc1_child + ' children and ' + this.sc1_adult + ' adults in ' + this.sc_families + ' families)</p>';
         }
+        if (this.sc2 > 0) { content += '<p>People helped by social programmes: ' + this.sc2 + '</p>' }
         if (this.mc > 0) { content += '<p>Medical treatments given: ' + this.mc + '</p>' }
         if (this.ep > 0) { content += '<p>Emergency programme services delivered: ' + this.kg + '</p>' }
         if (this.kg > 0) { content += '<p>Children in nursery school: ' + this.kg + '</p>' }
