@@ -1,5 +1,6 @@
 function initialize() {  
 
+  var mapElementID = 'map-canvas';
   var villageTable = '1_mE4L4_OPopMUvn8ynWNYGqsa0wyYzY0Gu8cvG8';
   var countryTable = '1w-fDJdEdo6ds_3c4J3n9yMNql7XY3TjX_QiGz74';
   var googleBrowserKey = 'AIzaSyD2NNOm9P6iW0Kw8NHb1SwcMwD4YB1fUiw';
@@ -8,7 +9,7 @@ function initialize() {
     center: new google.maps.LatLng(31.50362930577303, 14.4140625),
     zoom: 2,
     minZoom: 2,
-    maxZoom: 7,
+    maxZoom: 8,
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     streetViewControl: false
   };
@@ -16,7 +17,14 @@ function initialize() {
   google.maps.visualRefresh = true;
   
   // initialise map
-  var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+  var mapElement = document.getElementById(mapElementID);
+  var map = new google.maps.Map(mapElement, mapOptions);
+  var selectedCountry = '';
+  if (mapElement.hasAttribute('data-country')){
+    selectedCountry = mapElement.getAttribute('data-country').toUpperCase();
+  }
+  console.log(selectedCountry);
+  
   // add event listener for map
   google.maps.event.addListener(map, 'zoom_changed', function(e) {
     villages.updateIconSize();
@@ -34,7 +42,55 @@ function initialize() {
   
   // initialise country layer
   var countries = new countryControl(map, countryTable, infoPanel, villages, infoWindow);
+}
+
+// utility function to computer the latlng bounds from country KML
+// call from initialise() with "computeCountryBounds = new computeCountryBounds(countryTable, googleBrowserKey);"
+function computeCountryBounds(countryTable, googleBrowserKey) {
+  var script = document.createElement('script');
+  var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
+  url.push('sql=');
+  var query = 'SELECT kml,iso_a2 FROM ' + countryTable;
+  var encodedQuery = encodeURIComponent(query);
+  url.push(encodedQuery);
+  var callback = 'computeCountryBounds.callback';
+  url.push('&callback=' + callback);
+  url.push('&key=' + googleBrowserKey);
+  script.src = url.join('');
+  var body = document.getElementsByTagName('body')[0];
+  body.appendChild(script);
   
+  this.callback = function(data) {
+    var countries = data.rows;
+    var result = [];
+    for (var i=0; i<countries.length; i++){
+      var country = countries[i][0];
+      var bounds = new google.maps.LatLngBounds();
+      if (country.type == "GeometryCollection"){
+        for (var j=0; j<country.geometries.length; j++){
+          var coordinates = country.geometries[j].coordinates[0];
+          for (var k=0; k<coordinates.length; k++){
+            var point = new google.maps.LatLng(coordinates[k][1], coordinates[k][0]);
+            bounds.extend(point);
+          }
+        }
+      } else {
+        var coordinates = country.geometry.coordinates[0];
+        for (var k=0; k<coordinates.length; k++){
+          var point = new google.maps.LatLng(coordinates[k][1], coordinates[k][0]);
+          bounds.extend(point);
+        }
+      }
+      result.push({
+        'iso_a2': countries[i][1],
+        'ne_lat': bounds.getNorthEast().lat(),
+        'ne_lng': bounds.getNorthEast().lng(),
+        'sw_lat': bounds.getSouthWest().lat(),
+        'sw_lng': bounds.getSouthWest().lng()
+      })
+    }
+    console.log(JSON.stringify(result));
+  }
 }
 
 // controller for villages layer
@@ -177,9 +233,14 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
   // add event listener for country layer
   google.maps.event.addListener(this.countries, 'click', function(e) {
     var iso_a2 = e.row['iso_a2'].value;
-    infoPanel.update(e, villages, iso_a2);
+    // close infowindow
     infoWindow.close();
-    villages.addToMap(map, iso_a2);
+    // fit map bounds to selected country
+    var ne_bound = new google.maps.LatLng(e.row['ne_lat'].value, e.row['ne_lng'].value);
+    var sw_bound = new google.maps.LatLng(e.row['sw_lat'].value, e.row['sw_lng'].value);
+    var bounds = new google.maps.LatLngBounds(sw_bound, ne_bound);
+    map.fitBounds(bounds);
+    // update fusion tables overlay
     this.setOptions({
       query: {
         select: 'kml',
@@ -187,6 +248,10 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
         where: "iso_a2 DOES NOT CONTAIN '" + iso_a2 + "'"
       }
     });
+    // update infopanel
+    infoPanel.update(e, villages, iso_a2);
+    // add villages in selected country to map
+    villages.addToMap(map, iso_a2);
   });
 
 }
