@@ -181,23 +181,11 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
     infoWindow.close();
     villages.addToMap(map, iso_a2);
     this.setOptions({
-      styles: [{
-        where: "programmes = 0",
-        polygonOptions: {
-          fillColor: "#999999",
-          fillOpacity: 0.8
-        }
-      },{
-        where: "programmes > 0",
-        polygonOptions: {
-          fillColor: "#009AE0"
-        }
-      },{
-        where: "iso_a2 CONTAINS '" + iso_a2 + "'",
-        polygonOptions: {
-          fillOpacity: 0.01
-        }
-      }]
+      query: {
+        select: 'kml',
+        from: countryTable,
+        where: "iso_a2 DOES NOT CONTAIN '" + iso_a2 + "'"
+      }
     });
   });
 
