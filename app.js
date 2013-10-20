@@ -13,7 +13,6 @@ function initialize() {
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     streetViewControl: false
   };
-  
   google.maps.visualRefresh = true;
   
   // initialise map
@@ -24,11 +23,6 @@ function initialize() {
     selectedCountry = mapElement.getAttribute('data-country').toUpperCase();
   }
   console.log(selectedCountry);
-  
-  // add event listener for map
-  google.maps.event.addListener(map, 'zoom_changed', function(e) {
-    villages.updateIconSize();
-  });
   
   // initialise info panel
   var infoPanel = new panelControl(map);
@@ -158,6 +152,11 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
   var select = 'programme, lat, lng, iso_a2, location_estimate,'
     + 'CV,YF1,YF2,KG,SL1,SL2,TC1,TC2,SC1_child,SC1_adult,SC2,MC,MC_days,EP,EP_days,CV_families,SC_families';
   fusionTablesRequest(villageTable, googleBrowserKey, select, '', that.loadVillages);
+  
+  // add event listener for changes to map zoom level
+  google.maps.event.addListener(map, 'zoom_changed', function(e) {
+    that.updateIconSize();
+  });
   
 }
 
