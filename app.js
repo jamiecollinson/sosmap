@@ -38,91 +38,39 @@ function initialize() {
   
   // initialise village layer & add to window so villages.callback is available
   var villages = new villageControl(map, villageTable, googleBrowserKey, infoWindow);
-  window.villages = villages;
   
   // initialise country layer
   var countries = new countryControl(map, countryTable, infoPanel, villages, infoWindow);
 }
 
-// utility function to computer the latlng bounds from country KML
-// call from initialise() with "computeCountryBounds = new computeCountryBounds(countryTable, googleBrowserKey);"
-function computeCountryBounds(countryTable, googleBrowserKey) {
-  var script = document.createElement('script');
-  var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
-  url.push('sql=');
-  var query = 'SELECT kml,iso_a2 FROM ' + countryTable;
-  var encodedQuery = encodeURIComponent(query);
-  url.push(encodedQuery);
-  var callback = 'computeCountryBounds.callback';
-  url.push('&callback=' + callback);
-  url.push('&key=' + googleBrowserKey);
-  script.src = url.join('');
-  var body = document.getElementsByTagName('body')[0];
-  body.appendChild(script);
-  
-  this.callback = function(data) {
-    var countries = data.rows;
-    var result = [];
-    for (var i=0; i<countries.length; i++){
-      var country = countries[i][0];
-      var bounds = new google.maps.LatLngBounds();
-      if (country.type == "GeometryCollection"){
-        for (var j=0; j<country.geometries.length; j++){
-          var coordinates = country.geometries[j].coordinates[0];
-          for (var k=0; k<coordinates.length; k++){
-            var point = new google.maps.LatLng(coordinates[k][1], coordinates[k][0]);
-            bounds.extend(point);
-          }
-        }
-      } else {
-        var coordinates = country.geometry.coordinates[0];
-        for (var k=0; k<coordinates.length; k++){
-          var point = new google.maps.LatLng(coordinates[k][1], coordinates[k][0]);
-          bounds.extend(point);
-        }
-      }
-      result.push({
-        'iso_a2': countries[i][1],
-        'ne_lat': bounds.getNorthEast().lat(),
-        'ne_lng': bounds.getNorthEast().lng(),
-        'sw_lat': bounds.getSouthWest().lat(),
-        'sw_lng': bounds.getSouthWest().lng()
-      })
-    }
-    console.log(JSON.stringify(result));
-  }
-}
+google.maps.event.addDomListener(window, 'load', initialize);
+
+// add JSON3 for JSON parsing if we're running on an older browser (i.e. <IE8)
+window.JSON || document.write('<script src="//cdnjs.cloudflare.com/ajax/libs/json3/3.2.4/json3.min.js"><\/script>');
+
+/////////////////
+// CONTROLLERS //
+/////////////////
 
 // controller for villages layer
 function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
-  // jsonp query to get village data from fusion tables
-  var script = document.createElement('script');
-  var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
-  url.push('sql=');
-  var query = 'SELECT programme, lat, lng, iso_a2, location_estimate,'
-    + 'CV,YF1,YF2,KG,SL1,SL2,TC1,TC2,SC1_child,SC1_adult,SC2,MC,MC_days,EP,EP_days,CV_families,SC_families'
-    + ' FROM ' + villageTable;
-  var encodedQuery = encodeURIComponent(query);
-  url.push(encodedQuery);
-  url.push('&callback=villages.callBack');
-  url.push('&key=' + googleBrowserKey);
-  script.src = url.join('');
-  var body = document.getElementsByTagName('body')[0];
-  body.appendChild(script);
+  
+  var that = this;
   
   var smallIcon = 'img/sos-marker-small.png';
   var largeIcon = 'img/sos-marker-large.png';
   
-  this.villages = [];
+  this.villageMarkers = [];
   
   this.addAllToMap = function(map) {
-    for (var i=0; i<this.villages.length; i++) {
-      this.villages[i].setMap(map);
+    var villages = that.villageMarkers;
+    for (var i=0; i<villages.length; i++) {
+      villages[i].setMap(map);
     }
   }
   
   this.addToMap = function(map, iso_a2) {
-    var villages = this.villages;
+    var villages = that.villageMarkers;
     for (var i=0; i<villages.length; i++) {
       if (villages[i].iso_a2 === iso_a2) {
         villages[i].setAnimation(google.maps.Animation.DROP);
@@ -135,7 +83,7 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
   
   this.updateIconSize = function() {
     var zoom = map.getZoom();
-    var villages = this.villages;
+    var villages = that.villageMarkers;
     if (zoom < 5) {
       for (var i=0; i<villages.length; i++) {
         villages[i].setIcon(smallIcon);
@@ -147,7 +95,8 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
     }
   }
   
-  this.callBack = function(data) {
+  this.loadVillages = function(data) {
+    var villages = that.villageMarkers;
     var rows = data['rows'];
     for (var i=0; i<rows.length; i++) {
       var latLng = new google.maps.LatLng(rows[i][1],rows[i][2]);
@@ -201,9 +150,14 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
         });
         infoWindow.open(map);
       });
-      this.villages.push(marker);
+      villages.push(marker);
     }
   }
+  
+  // load village data from fusion tables via ajax
+  var select = 'programme, lat, lng, iso_a2, location_estimate,'
+    + 'CV,YF1,YF2,KG,SL1,SL2,TC1,TC2,SC1_child,SC1_adult,SC2,MC,MC_days,EP,EP_days,CV_families,SC_families';
+  fusionTablesRequest(villageTable, googleBrowserKey, select, '', that.loadVillages);
   
 }
 
@@ -266,7 +220,7 @@ function panelControl(map) {
   map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);  
   
   this.update = function(e, villages, iso_a2) {
-    var villages = villages.villages;
+    var villages = villages.villageMarkers;
     var countryTotals = {
       cv: 0,
       yf1: 0,
@@ -330,4 +284,84 @@ function panelControl(map) {
   }
 }
 
-google.maps.event.addDomListener(window, 'load', initialize);
+///////////////////////
+// UTILITY FUNCTIONS //
+///////////////////////
+
+// request data via fusion tables API
+function fusionTablesRequest(table, key, select, where, callback) {
+  var xhReq;
+  if (window.XMLHttpRequest) {
+    // code for IE7+, Firefox, Chrome, Opera, Safari
+    xhReq = new XMLHttpRequest();
+  } else {
+    // code for IE6, IE5
+    xhReq = new ActiveXObject("Microsoft.XMLHTTP");
+  }
+  // construct request
+  var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
+  url.push('sql=');
+  var query = 'SELECT ' + select
+    + ' FROM ' + table;
+  if (where != '') {query += ' WHERE ' + where};
+  var encodedQuery = encodeURIComponent(query);
+  url.push(encodedQuery);
+  url.push('&key=' + key);
+  url = url.join('');
+  // send request
+  xhReq.open("get", url, true);
+  xhReq.onreadystatechange = function() {
+    if (xhReq.readyState != 4)  { return; }
+    callback(JSON.parse(xhReq.responseText));
+  };
+  xhReq.send(null);
+}
+ 
+// utility function to computer the latlng bounds from country KML
+// call from initialise() with "computeCountryBounds = new computeCountryBounds(countryTable, googleBrowserKey);"
+function computeCountryBounds(countryTable, googleBrowserKey) {
+  var script = document.createElement('script');
+  var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
+  url.push('sql=');
+  var query = 'SELECT kml,iso_a2 FROM ' + countryTable;
+  var encodedQuery = encodeURIComponent(query);
+  url.push(encodedQuery);
+  var callback = 'computeCountryBounds.callback';
+  url.push('&callback=' + callback);
+  url.push('&key=' + googleBrowserKey);
+  script.src = url.join('');
+  var body = document.getElementsByTagName('body')[0];
+  body.appendChild(script);
+  
+  this.callback = function(data) {
+    var countries = data.rows;
+    var result = [];
+    for (var i=0; i<countries.length; i++){
+      var country = countries[i][0];
+      var bounds = new google.maps.LatLngBounds();
+      if (country.type == "GeometryCollection"){
+        for (var j=0; j<country.geometries.length; j++){
+          var coordinates = country.geometries[j].coordinates[0];
+          for (var k=0; k<coordinates.length; k++){
+            var point = new google.maps.LatLng(coordinates[k][1], coordinates[k][0]);
+            bounds.extend(point);
+          }
+        }
+      } else {
+        var coordinates = country.geometry.coordinates[0];
+        for (var k=0; k<coordinates.length; k++){
+          var point = new google.maps.LatLng(coordinates[k][1], coordinates[k][0]);
+          bounds.extend(point);
+        }
+      }
+      result.push({
+        'iso_a2': countries[i][1],
+        'ne_lat': bounds.getNorthEast().lat(),
+        'ne_lng': bounds.getNorthEast().lng(),
+        'sw_lat': bounds.getSouthWest().lat(),
+        'sw_lng': bounds.getSouthWest().lng()
+      })
+    }
+    console.log(JSON.stringify(result));
+  }
+}
