@@ -1,5 +1,5 @@
 function initialize() {  
-
+  
   var mapElementID = 'map-canvas';
   var villageTable = '1_mE4L4_OPopMUvn8ynWNYGqsa0wyYzY0Gu8cvG8';
   var countryTable = '1w-fDJdEdo6ds_3c4J3n9yMNql7XY3TjX_QiGz74';
@@ -13,16 +13,12 @@ function initialize() {
     mapTypeId: google.maps.MapTypeId.ROADMAP,
     streetViewControl: false
   };
-  google.maps.visualRefresh = true;
   
+  google.maps.visualRefresh = true;
+    
   // initialise map
   var mapElement = document.getElementById(mapElementID);
   var map = new google.maps.Map(mapElement, mapOptions);
-  var selectedCountry = '';
-  if (mapElement.hasAttribute('data-country')){
-    selectedCountry = mapElement.getAttribute('data-country').toUpperCase();
-  }
-  console.log(selectedCountry);
   
   // initialise info panel
   var infoPanel = new panelControl(map);
@@ -35,8 +31,24 @@ function initialize() {
   
   // initialise country layer
   var countries = new countryControl(map, countryTable, infoPanel, villages, infoWindow);
+  
+  // if data-country set then select that country
+  if (mapElement.hasAttribute('data-country')){
+    var selectedCountry = mapElement.getAttribute('data-country').toUpperCase();
+    fusionTablesRequest(countryTable, googleBrowserKey, '*', "iso_a2 = '" + selectedCountry + "'", function(data) {
+      var dict = {};
+      for (var i=0; i<data.columns.length; i++){
+        dict[data.columns[i]] = {
+          value: data.rows[0][i]
+        };
+      }
+      countries.setCountry(dict);
+    });
+  }
+  
 }
 
+// initialise once DOM loaded
 google.maps.event.addDomListener(window, 'load', initialize);
 
 // add JSON3 for JSON parsing if we're running on an older browser (i.e. <IE8)
@@ -63,7 +75,7 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
     }
   }
   
-  this.addToMap = function(map, iso_a2) {
+  this.addToMap = function(iso_a2) {
     var villages = that.villageMarkers;
     for (var i=0; i<villages.length; i++) {
       if (villages[i].iso_a2 === iso_a2) {
@@ -161,7 +173,12 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
 }
 
 // controller for country layer
-function countryControl(map, countryTable, infoPanel, villages, infoWindow) {  
+function countryControl(map, countryTable, infoPanel, villages, infoWindow) { 
+  
+  var that = this;
+  
+  this.selectedCountry = '';
+  
   this.countries = new google.maps.FusionTablesLayer({
     query: {
       select: 'kml',
@@ -182,29 +199,35 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
     map: map,
     suppressInfoWindows: true
   });
-  
-  // add event listener for country layer
-  google.maps.event.addListener(this.countries, 'click', function(e) {
-    var iso_a2 = e.row['iso_a2'].value;
+
+  this.setCountry = function(dataRow) {
+    var iso_a2 = dataRow['iso_a2'].value;
     // close infowindow
     infoWindow.close();
-    // fit map bounds to selected country
-    var ne_bound = new google.maps.LatLng(e.row['ne_lat'].value, e.row['ne_lng'].value);
-    var sw_bound = new google.maps.LatLng(e.row['sw_lat'].value, e.row['sw_lng'].value);
-    var bounds = new google.maps.LatLngBounds(sw_bound, ne_bound);
-    map.fitBounds(bounds);
     // update fusion tables overlay
-    this.setOptions({
+    that.countries.setOptions({
       query: {
         select: 'kml',
         from: countryTable,
         where: "iso_a2 DOES NOT CONTAIN '" + iso_a2 + "'"
       }
     });
-    // update infopanel
-    infoPanel.update(e, villages, iso_a2);
     // add villages in selected country to map
-    villages.addToMap(map, iso_a2);
+    villages.addToMap(iso_a2);
+    // update selected country variable
+    that.selectedCountry = iso_a2;
+    // fit map bounds to selected country
+    var ne_bound = new google.maps.LatLng(dataRow['ne_lat'].value, dataRow['ne_lng'].value);
+    var sw_bound = new google.maps.LatLng(dataRow['sw_lat'].value, dataRow['sw_lng'].value);
+    var bounds = new google.maps.LatLngBounds(sw_bound, ne_bound);
+    map.fitBounds(bounds);
+    // update infopanel
+    infoPanel.update(dataRow, villages);
+  }
+  
+  // add event listener for country layer
+  google.maps.event.addListener(this.countries, 'click', function(e) {
+    that.setCountry(e.row);
   });
 
 }
@@ -218,7 +241,8 @@ function panelControl(map) {
   div.innerHTML = '<h1>Click on a country to see where we work</h1>';
   map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);  
   
-  this.update = function(e, villages, iso_a2) {
+  this.update = function(dataRow, villages) {
+    var iso_a2 = dataRow['iso_a2'].value;
     var villages = villages.villageMarkers;
     var countryTotals = {
       cv: 0,
@@ -262,7 +286,7 @@ function panelControl(map) {
         countryTotals.sc_families += villages[i].sc_families;
       }
     }
-    var content = '<h2>' + e.row['name'].value + '</h2>';
+    var content = '<h2>' + dataRow['name'].value + '</h2>';
     content += '<p><em>Click on a marker to see details of each programme</em></p>';
     if (countryTotals.cv > 0) { 
       content += '<p>Sponsored children: ' + countryTotals.cv + ' (' + countryTotals.cv_families + ' SOS families)</p>' 
