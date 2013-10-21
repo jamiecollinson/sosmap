@@ -79,7 +79,7 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
     var villages = that.villageMarkers;
     for (var i=0; i<villages.length; i++) {
       if (villages[i].iso_a2 === iso_a2) {
-        villages[i].setAnimation(google.maps.Animation.DROP);
+        //villages[i].setAnimation(google.maps.Animation.DROP);
         villages[i].setMap(map);
       } else {
         villages[i].setMap();
