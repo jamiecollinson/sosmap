@@ -28,31 +28,26 @@ function initialize() {
   
   // initialise village layer & add to window so villages.callback is available
   var villages = new villageControl(map, villageTable, googleBrowserKey, infoWindow);
+  // attach to window so that fusion tables callback can access it
+  // should probably pick a namespace for this
+  window.villages = villages;
   
   // initialise country layer
   var countries = new countryControl(map, countryTable, infoPanel, villages, infoWindow);
+  // attach to window so that fusion tables callback can access it
+  // should probably pick a namespace for this
+  window.countries = countries;
   
   // if data-country set then select that country
   if (mapElement.hasAttribute('data-country')){
     var selectedCountry = mapElement.getAttribute('data-country').toUpperCase();
-    fusionTablesRequest(countryTable, googleBrowserKey, '*', "iso_a2 = '" + selectedCountry + "'", function(data) {
-      var dict = {};
-      for (var i=0; i<data.columns.length; i++){
-        dict[data.columns[i]] = {
-          value: data.rows[0][i]
-        };
-      }
-      countries.setCountry(dict);
-    });
+    fusionTablesRequest(countryTable, googleBrowserKey, '*', "iso_a2 = '" + selectedCountry + "'", 'countries.loadCountry');
   }
   
 }
 
 // initialise once DOM loaded
 google.maps.event.addDomListener(window, 'load', initialize);
-
-// add JSON3 for JSON parsing if we're running on an older browser (i.e. <IE8)
-window.JSON || document.write('<script src="//cdnjs.cloudflare.com/ajax/libs/json3/3.2.4/json3.min.js"><\/script>');
 
 /////////////////
 // CONTROLLERS //
@@ -163,8 +158,8 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
   // load village data from fusion tables via ajax
   var select = 'programme, lat, lng, iso_a2, location_estimate,'
     + 'CV,YF1,YF2,KG,SL1,SL2,TC1,TC2,SC1_child,SC1_adult,SC2,MC,MC_days,EP,EP_days,CV_families,SC_families';
-  fusionTablesRequest(villageTable, googleBrowserKey, select, '', that.loadVillages);
-  
+  fusionTablesRequest(villageTable, googleBrowserKey, select, '', 'villages.loadVillages');
+
   // add event listener for changes to map zoom level
   google.maps.event.addListener(map, 'zoom_changed', function(e) {
     that.updateIconSize();
@@ -200,6 +195,16 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
     suppressInfoWindows: true
   });
 
+  this.loadCountry = function(data) {
+    var dict = {};
+    for (var i=0; i<data.columns.length; i++){
+      dict[data.columns[i]] = {
+        value: data.rows[0][i]
+      };
+    }
+    that.setCountry(dict); 
+  }
+  
   this.setCountry = function(dataRow) {
     var iso_a2 = dataRow['iso_a2'].value;
     // close infowindow
@@ -312,16 +317,10 @@ function panelControl(map) {
 ///////////////////////
 
 // request data via fusion tables API
+// would be better as XMLHttpRequest, but this method had problems with IE8-10 due to calling an HTTPS resource from HTTP
 function fusionTablesRequest(table, key, select, where, callback) {
-  var xhReq;
-  if (window.XMLHttpRequest) {
-    // code for IE7+, Firefox, Chrome, Opera, Safari
-    xhReq = new XMLHttpRequest();
-  } else {
-    // code for IE6, IE5
-    xhReq = new ActiveXObject("Microsoft.XMLHTTP");
-  }
-  // construct request
+  // jsonp query to get village data from fusion tables
+  var script = document.createElement('script');
   var url = ['https://www.googleapis.com/fusiontables/v1/query?'];
   url.push('sql=');
   var query = 'SELECT ' + select
@@ -329,15 +328,11 @@ function fusionTablesRequest(table, key, select, where, callback) {
   if (where != '') {query += ' WHERE ' + where};
   var encodedQuery = encodeURIComponent(query);
   url.push(encodedQuery);
+  url.push('&callback=' + callback);
   url.push('&key=' + key);
-  url = url.join('');
-  // send request
-  xhReq.open("get", url, true);
-  xhReq.onreadystatechange = function() {
-    if (xhReq.readyState != 4)  { return; }
-    callback(JSON.parse(xhReq.responseText));
-  };
-  xhReq.send(null);
+  script.src = url.join('');
+  var body = document.getElementsByTagName('body')[0];
+  body.appendChild(script);
 }
  
 // utility function to computer the latlng bounds from country KML
