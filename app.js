@@ -58,8 +58,8 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow, infoPan
   
   var that = this;
   
-  var smallIcon = '/img/sos-marker-small.png';
-  var largeIcon = '/img/sos-marker-large.png';
+  var smallIcon = 'img/sos-marker-small.png';
+  var largeIcon = 'img/sos-marker-large.png';
   
   this.villageMarkers = [];
   
