@@ -246,6 +246,7 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
 // add custom control for country info panel
 function panelControl(map) {
   var div = document.createElement('div');
+  div.className = 'sosmap-infowindow';
   div.style.margin = '5px';
   div.style.padding = '5px';
   div.style.backgroundColor = 'white';

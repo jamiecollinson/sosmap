@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0; }
+      #map-canvas { height: 450px; }
+      .header { background: #EC7404; }
+      .breadcrumb { margin: 10px 0 0 0; }
+      .menu { margin: 20px 0 0 0; }
+      .container { padding: 20px 0; }
+      .sosmap-infowindow { max-width: 30%; }
+    </style>
+    <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD2NNOm9P6iW0Kw8NHb1SwcMwD4YB1fUiw&sensor=false"></script>
+    <script type="text/javascript" src="../app.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12">
+          <div class="header">
+            <img src="http://www.soschildrensvillages.org.uk/logo.png">
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12">
+          <ol class="breadcrumb">
+            <li><a href="#">SOS Children</a></li>
+            <li><a href="#">Sponsor a Child</a></li>
+            <li><a href="#">Asian Sponsorship</a></li>
+            <li class="active">Sponsor a Child in India</li>
+          </ol>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-sm-3 col-sm-push-9 menu">
+          <ul class="list-group">
+            <li class="list-group-item">SOS Children</li>
+            <li class="list-group-item">About our Charity</li>
+            <li class="list-group-item active">Sponsor a Child</li>
+            <li class="list-group-item">How to Help</li>
+            <li class="list-group-item">Donate</li>
+          </ul>
+        </div>
+        <div class="col-sm-9 col-sm-pull-3">
+          <h1>Sponsor a child in India</h1>
+          <p><strong>Since 1963, SOS Children has supported vulnerable children and families throughout India. We provide long-term support, as well as essential services during emergencies.</strong></p>
+          <p>Across India, we take care of children who can no longer live with their family. They grow up in a SOS family home with their SOS brothers and sisters. Together, they are cared for by a specially trained SOS mother. Several of these families make up a Children's Village. Quality education, healthcare and tailored services are also provided to ensure that each child flourishes.</p>
+          <h2>Our work in India:</h2>
+          <div id="map-canvas" data-country="IN"></div>          
+          <h2>India: a country of contrasts</h2>
+          <p>The seventh largest country in the world and an emerging economic power, India is brimming with potential. An incredibly diverse country, it is home to 1.2 billion people, making it the second most populous country in the world. Since the 1960s many have been lifted out of poverty due to economic change and a twofold increase in wages.</p>
+          <p>Yet poverty endures in many regions, especially rural areas. It's shocking to learn that nearly a third of the population lives below the national poverty line. A fifth of people lack access to clean drinking water, and health care is a major concern with overall life expectancy below 70. India contains the highest number of illiterate people in the world. In most regions, girls and women are less likely to be able to read and write than their male counterparts.</p>
+          <p style="text-align:center"><button class="btn btn-primary btn-lg">Sponsor a child in India today</button></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
