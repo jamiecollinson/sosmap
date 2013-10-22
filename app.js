@@ -27,7 +27,7 @@ function initialize() {
   var infoWindow = new google.maps.InfoWindow();
   
   // initialise village layer & add to window so villages.callback is available
-  var villages = new villageControl(map, villageTable, googleBrowserKey, infoWindow);
+  var villages = new villageControl(map, villageTable, googleBrowserKey, infoWindow, infoPanel);
   // attach to window so that fusion tables callback can access it
   // should probably pick a namespace for this
   window.villages = villages;
@@ -54,12 +54,12 @@ google.maps.event.addDomListener(window, 'load', initialize);
 /////////////////
 
 // controller for villages layer
-function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
+function villageControl(map, villageTable, googleBrowserKey, infoWindow, infoPanel) {
   
   var that = this;
   
-  var smallIcon = 'img/sos-marker-small.png';
-  var largeIcon = 'img/sos-marker-large.png';
+  var smallIcon = '/img/sos-marker-small.png';
+  var largeIcon = '/img/sos-marker-large.png';
   
   this.villageMarkers = [];
   
@@ -153,6 +153,12 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow) {
       });
       villages.push(marker);
     }
+    // if map has been initialised, check after village load whether a set of villages needs to be loaded and the
+    // info panel updated
+    if (countries.selectedCountryRow) {
+      that.addToMap(countries.selectedCountryRow['iso_a2'].value);
+      infoPanel.update(countries.selectedCountryRow, that);
+    }
   }
   
   // load village data from fusion tables via ajax
@@ -172,7 +178,7 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
   
   var that = this;
   
-  this.selectedCountry = '';
+  this.selectedCountryRow = null;
   
   this.countries = new google.maps.FusionTablesLayer({
     query: {
@@ -220,7 +226,7 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
     // add villages in selected country to map
     villages.addToMap(iso_a2);
     // update selected country variable
-    that.selectedCountry = iso_a2;
+    that.selectedCountryRow = dataRow;
     // fit map bounds to selected country
     var ne_bound = new google.maps.LatLng(dataRow['ne_lat'].value, dataRow['ne_lng'].value);
     var sw_bound = new google.maps.LatLng(dataRow['sw_lat'].value, dataRow['sw_lng'].value);
