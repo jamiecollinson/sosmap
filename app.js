@@ -10,8 +10,10 @@ function initialize() {
     zoom: 2,
     minZoom: 2,
     maxZoom: 8,
+    mapTypeControl: false,
     mapTypeId: google.maps.MapTypeId.ROADMAP,
-    streetViewControl: false
+    streetViewControl: false,
+    scrollwheel: false
   };
   
   google.maps.visualRefresh = true;
@@ -63,7 +65,7 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow, infoPan
   
   this.villageMarkers = [];
   
-  this.addAllToMap = function(map) {
+  this.addAllToMap = function() {
     var villages = that.villageMarkers;
     for (var i=0; i<villages.length; i++) {
       villages[i].setMap(map);
@@ -188,13 +190,14 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
     styles: [{
       where: 'programmes = 0',
       polygonOptions: {
-        fillColor: "#999999",
-        fillOpacity: 0.6
+        fillColor: "#aaaaaa",
+        fillOpacity: 0.8
       }
     },{
       where: 'programmes > 0',
       polygonOptions: {
-        fillColor: "#009AE0"
+        fillColor: "#009AE0",
+        fillOpacity: 0.5
       }
     }],
     map: map,
@@ -257,6 +260,7 @@ function panelControl(map) {
     var iso_a2 = dataRow['iso_a2'].value;
     var villages = villages.villageMarkers;
     var countryTotals = {
+      programmes: 0,
       cv: 0,
       yf1: 0,
       yf2: 0,
@@ -278,6 +282,7 @@ function panelControl(map) {
     };
     for (var i=0; i<villages.length; i++) {
       if (villages[i].iso_a2 === iso_a2) {
+        countryTotals.programmes++;
         countryTotals.cv += villages[i].cv;
         countryTotals.yf1 += villages[i].yf1;
         countryTotals.yf2 += villages[i].yf2;
@@ -299,21 +304,27 @@ function panelControl(map) {
       }
     }
     var content = '<h2>' + dataRow['name'].value + '</h2>';
-    content += '<p><em>Click on a marker to see details of each programme</em></p>';
-    if (countryTotals.cv > 0) { 
-      content += '<p>Sponsored children: ' + countryTotals.cv + ' (' + countryTotals.cv_families + ' SOS families)</p>' 
+    if (countryTotals.programmes > 0){
+      content += '<p><em>Click on a marker for details of each programme</em></p>';
+      content += '<ul>';
+      if (countryTotals.cv > 0) { 
+        content += '<li><strong>{cv}</strong> sponsored children</li>'.replace('{cv}', countryTotals.cv); 
+      }
+      if (countryTotals.sc1 > 0) { 
+        content += '<li><strong>{sc1}</strong> helped by family strengthening programmes</li>'.replace('{sc1}', countryTotals.sc1);
+      }
+      if (countryTotals.sc2 > 0) { content += '<li><strong>{sc2}</strong> helped by social programmes</li>'.replace('{sc2}', countryTotals.sc2); }
+      if (countryTotals.mc > 0) { content += '<li><strong>{mc}</strong> medical treatments given</li>'.replace('{mc}', countryTotals.mc); }
+      if (countryTotals.ep > 0) { content += '<li><strong>{ep}</strong> emergency programme services delivered</li>'.replace('{ep}', countryTotals.ep); }
+      if (countryTotals.kg > 0) { content += '<li><strong>{kg}</strong> children in nursery school</li>'.replace('{kg}', countryTotals.kg); }
+      if (countryTotals.sl1 > 0) { content += '<li><strong>{sl1}</strong> children in primary school</li>'.replace('{sl1}', countryTotals.sl1); }
+      if (countryTotals.sl2 > 0) { content += '<li><strong>{sl2}</strong> children in secondary school</li>'.replace('{sl2}', countryTotals.sl2); }
+      if (countryTotals.tc2 > 0) { content += '<li><strong>{tc2}</strong> students in vocational training</li>'.replace('{tc2}', countryTotals.tc2); }
+      content += '</ul>';
+      content += '<p><a href="#">This will link to the country page</a></p>';
+    } else {
+      content += '<p>We have no programmes in ' + dataRow['name'].value + '</p>';
     }
-    if (countryTotals.sc1 > 0) { 
-      content += '<p>People helped by family strengthening programmes: ' + countryTotals.sc1 + '</p>';
-    }
-    if (countryTotals.sc2 > 0) { content += '<p>People helped by social programmes: ' + countryTotals.sc2 + '</p>' }
-    if (countryTotals.mc > 0) { content += '<p>Medical treatments given: ' + countryTotals.mc + '</p>' }
-    if (countryTotals.ep > 0) { content += '<p>Emergency programme services delivered: ' + countryTotals.ep + '</p>' }
-    if (countryTotals.kg > 0) { content += '<p>Children in nursery school: ' + countryTotals.kg + '</p>' }
-    if (countryTotals.sl1 > 0) { content += '<p>Children in primary school: ' + countryTotals.sl1 + '</p>' }
-    if (countryTotals.sl2 > 0) { content += '<p>Children in secondary school: ' + countryTotals.sl2 + '</p>' }
-    if (countryTotals.tc2 > 0) { content += '<p>Students in vocational training centres: ' + countryTotals.tc2 + '</p>' }
-    content += '<p><a href="#">This will link to the country page</a></p>';
     
     div.innerHTML = content;
   }
