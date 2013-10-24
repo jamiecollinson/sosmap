@@ -1,0 +1,9 @@
+.sosmap-infopanel {
+  margin: 5px;
+  padding: 5px;
+  max-width: 30%;
+  max-height: 90%;
+  border-radius: 2px;
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 4px 1px;
+}

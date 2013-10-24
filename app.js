@@ -130,7 +130,8 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow, infoPan
       });
       // add click listener
       google.maps.event.addListener(marker, 'click', function(e) {
-        var content = '<h2>' + this.title + '</h2>';
+        var content = '';
+        content += '<h2>' + this.title + '</h2>';
         if (this.location_estimate) { content += '<p><em>Location of this marker is approximate</em></p>' }
         if (this.cv > 0) { content += '<p>Sponsored children: ' + this.cv + ' (' + this.cv_families + ' SOS families)</p>' }
         if (this.sc1 > 0) { 
@@ -145,7 +146,7 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow, infoPan
         if (this.sl2 > 0) { content += '<p>Children in secondary school: ' + this.sl2 + '</p>' }
         if (this.tc2 > 0) { content += '<p>Students in vocational training centres: ' + this.tc2 + '</p>' }
         content += '<p><a href="#">This will link to the village page</a></p>';
-
+        
         infoWindow.setOptions({
           content: content,
           position: e.latLng,
@@ -249,10 +250,7 @@ function countryControl(map, countryTable, infoPanel, villages, infoWindow) {
 // add custom control for country info panel
 function panelControl(map) {
   var div = document.createElement('div');
-  div.className = 'sosmap-infowindow';
-  div.style.margin = '5px';
-  div.style.padding = '5px';
-  div.style.backgroundColor = 'white';
+  div.className = 'sosmap-infopanel';
   div.innerHTML = '<h1>Click on a country to see where we work</h1>';
   map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(div);  
   
