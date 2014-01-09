@@ -126,6 +126,7 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow, infoPan
         ep_days: parseInt(rows[i][19]),
         cv_families: parseInt(rows[i][20]),
         sc_families: parseInt(rows[i][21]),
+        url: rows[i][22],
         icon: smallIcon
       });
       // add click listener
@@ -145,7 +146,9 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow, infoPan
         if (this.sl1 > 0) { content += '<p>Children in primary school: ' + this.sl1 + '</p>' }
         if (this.sl2 > 0) { content += '<p>Children in secondary school: ' + this.sl2 + '</p>' }
         if (this.tc2 > 0) { content += '<p>Students in vocational training centres: ' + this.tc2 + '</p>' }
-        content += '<p><a href="#">This will link to the village page</a></p>';
+        if (this.url != '') {
+          content += '<p><a href="{url}" target="_blank">Click here to learn more about our work in {title}</a></p>'.replace('{url}', this.url).replace('{title}', this.title);
+        }
         
         infoWindow.setOptions({
           content: content,
@@ -321,7 +324,7 @@ function panelControl(map) {
       if (countryTotals.tc2 > 0) { content += '<li><strong>{tc2}</strong> students in vocational training</li>'.replace('{tc2}', countryTotals.tc2); }
       content += '</ul>';
       if (country_url != '') {
-        content += '<p><a href="{url}">Click here to learn more about our work in {country}</a></p>'.replace('{url}', country_url).replace('{country}', dataRow['name'].value);
+        content += '<p><a href="{url}" target="_blank">Click here to learn more about our work in {country}</a></p>'.replace('{url}', country_url).replace('{country}', dataRow['name'].value);
       }
     } else {
       content += '<p>We have no programmes in ' + dataRow['name'].value + '</p>';
