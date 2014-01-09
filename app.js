@@ -256,6 +256,7 @@ function panelControl(map) {
   
   this.update = function(dataRow, villages) {
     var iso_a2 = dataRow['iso_a2'].value;
+    var country_url = dataRow['country_url'].value;
     var villages = villages.villageMarkers;
     var countryTotals = {
       programmes: 0,
@@ -319,7 +320,7 @@ function panelControl(map) {
       if (countryTotals.sl2 > 0) { content += '<li><strong>{sl2}</strong> children in secondary school</li>'.replace('{sl2}', countryTotals.sl2); }
       if (countryTotals.tc2 > 0) { content += '<li><strong>{tc2}</strong> students in vocational training</li>'.replace('{tc2}', countryTotals.tc2); }
       content += '</ul>';
-      content += '<p><a href="#">This will link to the country page</a></p>';
+      content += '<p><a href="{url}">This will link to the country page</a></p>'.replace('{url}', country_url);
     } else {
       content += '<p>We have no programmes in ' + dataRow['name'].value + '</p>';
     }
