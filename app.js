@@ -169,7 +169,7 @@ function villageControl(map, villageTable, googleBrowserKey, infoWindow, infoPan
   
   // load village data from fusion tables via ajax
   var select = 'programme, lat, lng, iso_a2, location_estimate,'
-    + 'CV,YF1,YF2,KG,SL1,SL2,TC1,TC2,SC1_child,SC1_adult,SC2,MC,MC_days,EP,EP_days,CV_families,SC_families';
+    + 'CV,YF1,YF2,KG,SL1,SL2,TC1,TC2,SC1_child,SC1_adult,SC2,MC,MC_days,EP,EP_days,CV_families,SC_families, programme_url';
   fusionTablesRequest(villageTable, googleBrowserKey, select, '', 'villages.loadVillages');
 
   // add event listener for changes to map zoom level
