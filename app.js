@@ -320,7 +320,9 @@ function panelControl(map) {
       if (countryTotals.sl2 > 0) { content += '<li><strong>{sl2}</strong> children in secondary school</li>'.replace('{sl2}', countryTotals.sl2); }
       if (countryTotals.tc2 > 0) { content += '<li><strong>{tc2}</strong> students in vocational training</li>'.replace('{tc2}', countryTotals.tc2); }
       content += '</ul>';
-      content += '<p><a href="{url}">This will link to the country page</a></p>'.replace('{url}', country_url);
+      if (country_url != '') {
+        content += '<p><a href="{url}">Click here to learn more about our work in {country}</a></p>'.replace('{url}', country_url).replace('{country}', dataRow['name'].value);
+      }
     } else {
       content += '<p>We have no programmes in ' + dataRow['name'].value + '</p>';
     }
